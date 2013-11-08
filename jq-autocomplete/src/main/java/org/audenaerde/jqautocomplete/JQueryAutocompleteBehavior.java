@@ -29,6 +29,8 @@ import com.google.gson.Gson;
  */
 public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends AbstractAjaxBehavior
 {
+	private static final long serialVersionUID = 4251910817176833598L;
+
 	private static final ResourceReference JS = new JavaScriptResourceReference( JQueryAutocompleteBehavior.class, "jqautocomplete.js" );
 	
 	public static final String JQUERY_AUTOCOMPLETE_TERM_VAR = "term";
@@ -76,5 +78,10 @@ public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends
 		cycle.scheduleRequestHandlerAfterCurrent( new TextRequestHandler( "application/json", "UTF-8", json ) );
 	}
 	
+	@Override
+	public boolean getStatelessHint( Component component )
+	{
+		return false;
+	}
 	protected abstract Iterator<T> getChoices(String input);
 }
