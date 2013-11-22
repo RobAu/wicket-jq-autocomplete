@@ -127,21 +127,6 @@ public class HomePage extends WebPage
 			}
 		} );
 
-		AbstractDefaultAjaxBehavior aab = new AbstractDefaultAjaxBehavior()
-		{
-			@Override
-			protected void respond( AjaxRequestTarget target )
-			{
-				final RequestCycle requestCycle = RequestCycle.get();
-				final String val = requestCycle.getRequest().getRequestParameters().getParameterValue( "val" ).toString( "" );
-				tags.add( val );
-				newTag.setObject( "" );
-				target.add( f2 );
-				target.appendJavaScript( "$('#" + field.getMarkupId() + "').focus();" );
-			}
-
-		};
-		field.add( aab );
 		final List<String> test = new ArrayList<String>();
 		test.add( "aap" );
 		test.add( "noot" );
@@ -149,8 +134,18 @@ public class HomePage extends WebPage
 		test.add( "wim" );
 		test.add( "zus" );
 		test.add( "jet" );
-		field.add( new JQueryAutocompleteBehavior( f2, aab )
+		field.add( new JQueryAutocompleteBehavior( f2 )
 		{
+
+			@Override
+			protected void onSelect( AjaxRequestTarget target, String val )
+			{
+				super.onSelect( target, val );
+				tags.add( val );
+				newTag.setObject( "" );
+				target.add( f2 );
+				target.appendJavaScript( "$('#" + field.getMarkupId() + "').focus();" );
+			}
 
 			@Override
 			protected Iterator getChoices( String input )

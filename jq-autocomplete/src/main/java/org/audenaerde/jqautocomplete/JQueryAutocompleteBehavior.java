@@ -7,6 +7,8 @@ import java.util.List;
 
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
@@ -36,21 +38,40 @@ public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends
 
 	public static final String JQUERY_AUTOCOMPLETE_TERM_VAR = "term";
 
-	AbstractAjaxBehavior cu;
+	private AbstractAjaxBehavior onSelectBehavior;
 
-	private Component elem;
-
-	public JQueryAutocompleteBehavior( Form f2, AbstractAjaxBehavior aab )
-	{
-		cu = aab;
-		elem = f2;
-	}
+	private Component elementToAddTo;
 
 	public JQueryAutocompleteBehavior()
 	{
-		// TODO Auto-generated constructor stub
+		//no component to add the ui to.
 	}
-	
+
+	public JQueryAutocompleteBehavior( Form f2 )
+	{
+		elementToAddTo = f2;
+	}
+
+	/** We add onSelectBehaviour as well */
+	@Override
+	protected void onBind()
+	{
+		super.onBind();
+		onSelectBehavior = new AbstractDefaultAjaxBehavior()
+		{
+			private static final long serialVersionUID = -1082569150758130051L;
+
+			@Override
+			protected void respond( AjaxRequestTarget target )
+			{
+				final RequestCycle requestCycle = RequestCycle.get();
+				final String val = requestCycle.getRequest().getRequestParameters().getParameterValue( "val" ).toString( "" );
+				onSelect( target, val );
+			}
+		};
+
+		this.getComponent().add( onSelectBehavior );
+	}
 
 	/*
 	 * Convert List to json object
@@ -69,12 +90,10 @@ public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends
 		response.render( JavaScriptHeaderItem.forUrl( "jquery-ui.js" ) );
 		response.render( JavaScriptReferenceHeaderItem.forReference( JS ) );
 
-		//response.render( OnDomReadyHeaderItem.forScript( "alert('" + component.getMarkupId() + "');" ) );
-		if ( this.cu != null )
-		{
-			response.render( OnDomReadyHeaderItem.forScript( "initJqAutocomplete(\"" + component.getMarkupId() + "\",\"" + this.getCallbackUrl()
-				+ "\",\"" + this.cu.getCallbackUrl() + "\",\"" + this.elem.getMarkupId() + "\")" ) );
-		}
+		String elementToAddToId = this.elementToAddTo == null ? null : "\"" + this.elementToAddTo.getMarkupId()+"\"";
+		
+		response.render( OnDomReadyHeaderItem.forScript( "initJqAutocomplete(\"" + component.getMarkupId() + "\",\"" + this.getCallbackUrl()
+			+ "\",\"" + this.onSelectBehavior.getCallbackUrl() + "\"," + elementToAddToId + ")" ) );
 	}
 
 	@Override
@@ -105,4 +124,9 @@ public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends
 	}
 
 	protected abstract Iterator<T> getChoices( String input );
+
+	protected void onSelect( AjaxRequestTarget target, String val )
+	{
+	}
+
 }

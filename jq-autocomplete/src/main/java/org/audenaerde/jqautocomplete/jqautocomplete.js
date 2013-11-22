@@ -1,12 +1,8 @@
 function initJqAutocomplete(id, dataCallBack, selectCallBack, parentElement) {
+	
 	var elem = $("#" + id).autocomplete({
 		source : dataCallBack,
 		minLength : 0,
-		position : {
-			my : "left top",
-			at : "left bottom",
-			of : "#" + parentElement
-		},
 		select : function(event, ui) {
 
 			Wicket.Ajax.get({
@@ -17,6 +13,10 @@ function initJqAutocomplete(id, dataCallBack, selectCallBack, parentElement) {
 			});
 		}
 	});
+	if (parentElement)
+	{
+		elem.autocomplete( "option", "position", { my : "left top", at: "left bottom", of : "#" + parentElement } );
+	}
 	elem.data("ui-autocomplete")._renderItem = function(ul, item) {
 		var label = item.value;
 		if (item.desc) {
@@ -27,12 +27,14 @@ function initJqAutocomplete(id, dataCallBack, selectCallBack, parentElement) {
 	};
 	;
 
-	elem.data("ui-autocomplete")._resizeMenu = function() {
-		var ul = this.menu.element;
-		ul.outerWidth($("#" + parentElement).outerWidth());
+	if (parentElement)
+	{
+		elem.data("ui-autocomplete")._resizeMenu = function() {
+			var ul = this.menu.element;
+			ul.outerWidth($("#" + parentElement).outerWidth());
+		}
 	}
-
-	$("#" + id).focus(function() {
+	elem.focus(function() {
 		$(this).autocomplete("search", "");
 	});
 }
