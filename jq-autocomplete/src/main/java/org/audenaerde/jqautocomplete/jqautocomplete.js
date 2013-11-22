@@ -1,24 +1,47 @@
-function initJqAutocomplete(id, callbackurl)
-{
-	$("#"+id).autocomplete(
-			{ source: callbackurl	 
-			}).data( "ui-autocomplete" )._renderItem = function( ul, item ) {
-		        var label = item.value;
-		        if (item.desc)
-		        	{
-		        	label = label + "<span class=\"desc\">" + item.desc + "</span>";
-		        	}
-		
-				return $( "<li>" )
-				.append( "<a>" + label + "</a>" )
-				.appendTo( ul );
-				};; 
+function initJqAutocomplete(id, dataCallBack, selectCallBack, parentElement) {
+	var elem = $("#" + id).autocomplete({
+		source : dataCallBack,
+		minLength : 0,
+		position : {
+			my : "left top",
+			at : "left bottom",
+			of : "#" + parentElement
+		},
+		select : function(event, ui) {
+
+			Wicket.Ajax.get({
+				'u' : selectCallBack,
+				'ep' : {
+					'val' : ui.item.label
+				}
+			});
+		}
+	});
+	elem.data("ui-autocomplete")._renderItem = function(ul, item) {
+		var label = item.value;
+		if (item.desc) {
+			label = label + "<span class=\"desc\">" + item.desc + "</span>";
+		}
+
+		return $("<li>").append("<a>" + label + "</a>").appendTo(ul);
+	};
+	;
+
+	elem.data("ui-autocomplete")._resizeMenu = function() {
+		var ul = this.menu.element;
+		ul.outerWidth($("#" + parentElement).outerWidth());
+	}
+
+	$("#" + id).focus(function() {
+		$(this).autocomplete("search", "");
+	});
 }
 /**
- * Override the resize menu to make it the same size as the input box. taken from: <BR>
+ * Override the resize menu to make it the same size as the input box. taken
+ * from: <BR>
  * http://stackoverflow.com/questions/5643767/jquery-ui-autocomplete-width-not-set-correctly
  */
-jQuery.ui.autocomplete.prototype._resizeMenu = function () {
-	  var ul = this.menu.element;
-	  ul.outerWidth(this.element.outerWidth());
+jQuery.ui.autocomplete.prototype._resizeMenu = function() {
+	var ul = this.menu.element;
+	ul.outerWidth(this.element.outerWidth());
 }

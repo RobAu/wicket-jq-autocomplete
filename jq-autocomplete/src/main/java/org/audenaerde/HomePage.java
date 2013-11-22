@@ -6,17 +6,26 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.audenaerde.jqautocomplete.JQueryAutocompleteBehavior;
 
-import com.joestelmach.natty.CalendarSource;
 import com.joestelmach.natty.DateGroup;
 import com.joestelmach.natty.Parser;
 
@@ -35,7 +44,6 @@ public class HomePage extends WebPage
 		}
 
 		String value;
-
 		String desc;
 	}
 
@@ -58,6 +66,155 @@ public class HomePage extends WebPage
 		f.add( new TextField( "tf", new PropertyModel<String>( aap, "naam" ) ).add( newAutoCompleteBehavior() ) );
 		f.add( new TextField( "tf2", new PropertyModel<String>( aap, "uh" ) ).add( newNattyBehaviour() ) );
 		add( f );
+
+		final IModel<String> newTag = Model.of( "" );
+		final TextField<String> field = new TextField<String>( "field", newTag );
+		field.setOutputMarkupId( true );
+
+		final Form f2 = new Form( "f2" )
+		{
+
+			@Override
+			public void renderHead( IHeaderResponse response )
+			{
+				super.renderHead( response );
+				String js = String.format( "$('#%s').click (function() { $('#%s').focus() } );", this.getMarkupId(), field.getMarkupId() );
+				response.render( OnDomReadyHeaderItem.forScript( js ) );
+			}
+
+		};
+		f2.setOutputMarkupId( true );
+
+		final List<String> tags = new ArrayList<String>();
+		tags.add( "aap" );
+		tags.add( "noot" );
+
+		//Small fragment for a PageFieldSelector
+		class TagFragment extends Fragment
+		{
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+
+			public TagFragment( String id, final ListItem<String> item )
+			{
+				super( id, "tagFragment", HomePage.this );
+				this.add( new Label( "label", item.getModel() ) );
+				AjaxLink a = new AjaxLink<Void>( "link" )
+				{
+					@Override
+					public void onClick( AjaxRequestTarget target )
+					{
+						tags.remove( item.getIndex() );
+						target.add( f2 );
+						target.appendJavaScript( "$('#" + field.getMarkupId() + "').focus();" );
+					}
+				};
+				this.add( a );
+			}
+		}
+		;
+
+		f2.add( new ListView( "tags", tags )
+		{
+
+			@Override
+			protected void populateItem( ListItem item )
+			{
+				item.add( new TagFragment( "tag", item ).setRenderBodyOnly( true ) );
+
+			}
+		} );
+
+		AbstractDefaultAjaxBehavior aab = new AbstractDefaultAjaxBehavior()
+		{
+			@Override
+			protected void respond( AjaxRequestTarget target )
+			{
+				final RequestCycle requestCycle = RequestCycle.get();
+				final String val = requestCycle.getRequest().getRequestParameters().getParameterValue( "val" ).toString( "" );
+				tags.add( val );
+				newTag.setObject( "" );
+				target.add( f2 );
+				target.appendJavaScript( "$('#" + field.getMarkupId() + "').focus();" );
+			}
+
+		};
+		field.add( aab );
+		final List<String> test = new ArrayList<String>();
+		test.add( "aap" );
+		test.add( "noot" );
+		test.add( "mies" );
+		test.add( "wim" );
+		test.add( "zus" );
+		test.add( "jet" );
+		field.add( new JQueryAutocompleteBehavior( f2, aab )
+		{
+
+			@Override
+			protected Iterator getChoices( String input )
+			{
+			
+				List<String> res = new ArrayList<String>();
+				for ( String s : test )
+				{
+					if ( s.startsWith( input.toLowerCase() ) )
+						res.add( s );
+				}
+				return res.iterator();
+			}
+		} );
+		//		field.add( new AjaxFormComponentUpdatingBehavior("keypress")
+		//		{
+		//			
+		//			@Override
+		//			protected void updateAjaxAttributes( AjaxRequestAttributes attributes )
+		//			{
+		//				super.updateAjaxAttributes( attributes );
+		//				attributes.getAjaxCallListeners().add(new AjaxCallListener(){
+		//
+		//
+		//
+		//					@Override
+		//					public CharSequence getPrecondition( Component component )
+		//					{
+		//						  return  "var keycode = Wicket.Event.keyCode(attrs.event);" +
+		//				                            "if (keycode == 13)" +
+		//				                            "    return true;" +
+		//				                            "else" +
+		//				                            "    return false;";
+		//						
+		//					}});
+		//			}
+		//
+		//			@Override
+		//			protected void onUpdate( AjaxRequestTarget target )
+		//			{
+		//				
+		//				
+		//			}
+		//		} );
+		f2.add( field );
+		AjaxSubmitLink asl = new AjaxSubmitLink( "sb" )
+		{
+
+			@Override
+			protected void onSubmit( AjaxRequestTarget target, Form<?> form )
+			{
+				String newTagString = newTag.getObject();
+				if ( test.contains( newTagString ))
+				{
+					tags.add( newTagString );
+				}
+				newTag.setObject( "" );
+				target.add( f2 );
+				target.appendJavaScript( "$('#" + field.getMarkupId() + "').focus();" );
+			}
+		};
+		f2.add( asl );
+		f2.setDefaultButton( asl );
+		add( f2 );
 
 		// TODO Add your page's components here
 

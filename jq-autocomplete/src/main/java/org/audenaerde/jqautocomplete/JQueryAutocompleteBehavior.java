@@ -12,6 +12,7 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.JavaScriptReferenceHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.handler.TextRequestHandler;
 import org.apache.wicket.request.http.WebRequest;
@@ -23,8 +24,8 @@ import com.google.gson.Gson;
 
 /**
  * Basic autocomplete behavior.
+ * 
  * @author raudenaerde
- *
  * @param <T>
  */
 public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends AbstractAjaxBehavior
@@ -32,8 +33,25 @@ public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends
 	private static final long serialVersionUID = 4251910817176833598L;
 
 	private static final ResourceReference JS = new JavaScriptResourceReference( JQueryAutocompleteBehavior.class, "jqautocomplete.js" );
-	
+
 	public static final String JQUERY_AUTOCOMPLETE_TERM_VAR = "term";
+
+	AbstractAjaxBehavior cu;
+
+	private Component elem;
+
+	public JQueryAutocompleteBehavior( Form f2, AbstractAjaxBehavior aab )
+	{
+		cu = aab;
+		elem = f2;
+	}
+
+	public JQueryAutocompleteBehavior()
+	{
+		// TODO Auto-generated constructor stub
+	}
+	
+
 	/*
 	 * Convert List to json object
 	 */
@@ -43,6 +61,7 @@ public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends
 		String json = gson.toJson( matches );
 		return json;
 	}
+
 	@Override
 	public void renderHead( Component component, IHeaderResponse response )
 	{
@@ -51,7 +70,11 @@ public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends
 		response.render( JavaScriptReferenceHeaderItem.forReference( JS ) );
 
 		//response.render( OnDomReadyHeaderItem.forScript( "alert('" + component.getMarkupId() + "');" ) );
-		response.render( OnDomReadyHeaderItem.forScript( "initJqAutocomplete(\"" + component.getMarkupId() + "\",\"" + this.getCallbackUrl() + "\")" ) );
+		if ( this.cu != null )
+		{
+			response.render( OnDomReadyHeaderItem.forScript( "initJqAutocomplete(\"" + component.getMarkupId() + "\",\"" + this.getCallbackUrl()
+				+ "\",\"" + this.cu.getCallbackUrl() + "\",\"" + this.elem.getMarkupId() + "\")" ) );
+		}
 	}
 
 	@Override
@@ -60,28 +83,26 @@ public abstract class JQueryAutocompleteBehavior<T extends Serializable> extends
 		RequestCycle cycle = RequestCycle.get();
 		WebRequest webRequest = (WebRequest) cycle.getRequest();
 		@SuppressWarnings( "unused" )
-		StringValue term = webRequest.getQueryParameters().getParameterValue(JQUERY_AUTOCOMPLETE_TERM_VAR );
+		StringValue term = webRequest.getQueryParameters().getParameterValue( JQUERY_AUTOCOMPLETE_TERM_VAR );
 
 		String stringTerm = term.toString( "" ).toLowerCase();
-		
-		
-	
-		
+
 		List<T> result = new ArrayList<T>();
 		Iterator<T> d = getChoices( stringTerm );
-		
-		while (d.hasNext() )
+
+		while ( d.hasNext() )
 		{
 			result.add( d.next() );
 		}
-		String json = convertListToJson( result);
+		String json = convertListToJson( result );
 		cycle.scheduleRequestHandlerAfterCurrent( new TextRequestHandler( "application/json", "UTF-8", json ) );
 	}
-	
+
 	@Override
 	public boolean getStatelessHint( Component component )
 	{
 		return false;
 	}
-	protected abstract Iterator<T> getChoices(String input);
+
+	protected abstract Iterator<T> getChoices( String input );
 }

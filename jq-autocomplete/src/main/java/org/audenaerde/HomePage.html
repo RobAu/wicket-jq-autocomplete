@@ -33,26 +33,117 @@ li .ui-state-focus {
 ul.ui-menu li {
 	padding: 3px;
 }
-	ul.ui-menu .desc
-			{
-			color:#777;
-			}
-			ul.ui-menu .desc:before
-			{
-				content: " - ";	
-			}
+
+ul.ui-menu .desc {
+	color: #777;
+}
+
+ul.ui-menu .desc:before {
+	content: " - ";
+}
+
+.tags
+{
+	background-image: -moz-linear-gradient(center top , #EEEEEE 1%, #FFFFFF 15%);
+    border: 1px solid #AAAAAA;
+	padding:3px;
+}
+
+.tags INPUT
+{
+	border: 0px solid orange;
+}
+
+.tags ul  
+{
+	padding: 0px;
+	margin: 0px;
+	overflow:hidden;
+}
+
+.tags ul li.tag {
+
+	background-clip: padding-box;
+    background-color: #E4E4E4;
+    background-image: -moz-linear-gradient(center top , #F4F4F4 20%, #F0F0F0 50%, #E8E8E8 52%, #EEEEEE 100%);
+    border: 1px solid #AAAAAA;
+    border-radius: 3px;
+    box-shadow: 0 0 2px #FFFFFF inset, 0 1px 0 rgba(0, 0, 0, 0.05);
+    color: #333333;
+    cursor: default;
+    margin: 3px 0 3px 5px;
+    padding: 3px 5px 3px 3px;
+	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 11px;
+	display:inline-block;
+}
+.tags ul li.input {
+
+    border: 0px solid #AAAAAA;
+    border-radius: 3px;
+    color: #333333;
+   
+    padding: 3px 5px 3px 3px;
+	font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 11px;
+	display:inline-block;
+	width:10px;
+
+}
+.resetIcon {
+	background:
+		url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAATUlEQVQY02MoKCjYAMQLGNAASAwkB2JcAOL/yIqgkiCxCyCOALIiID4AkwTJwXQgK0KVxKFgAS7JCxhuQhLYAFWM4iaYixegeRGmaAEA6VphFcy2ClYAAAAASUVORK5CYII=")
+		no-repeat scroll center center transparent;
+	opacity: 0.5;
+	width: 12px;
+	display:inline-block;
+	height:100%;
+	text-decoration: none;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+button:focus {
+    outline: none;
+}
+
+.resetIcon:FOCUS
+{
+	outline:0;
+}
+.resetIcon:hover {
+	opacity: 1;
+}
+
 </style>
 
 </head>
 <body>
-	<div style="position: relative; height: 200px; width: 400px; border: 1px solid green;">
-		This DIV is styled a bit strange, but it is on prupose. It checks if the autocomplete is rendered correctly. <br>
-		Feel free to increate the height, so that autocomplete ends up in a scrolled area. There it will still work. :)
-		<form wicket:id="f"	style="position: absolute; bottom: 0px; right: 0px;">
+	<div
+		style="position: relative; height: 200px; width: 400px; border: 1px solid green;">
+		This DIV is styled a bit strange, but it is on prupose. It checks if
+		the autocomplete is rendered correctly. <br> Feel free to
+		increate the height, so that autocomplete ends up in a scrolled area.
+		There it will still work. :)
+		<form wicket:id="f"
+			style="position: absolute; bottom: 0px; right: 0px;">
 			<input wicket:id="tf" style="display: inline-block; width: 300px;"></input>
 			<input wicket:id="tf2" style="display: inline-block; width: 300px;"></input>
 			<input type="submit"></input>
 		</form>
 	</div>
+
+	<wicket:fragment wicket:id="tagFragment"><a class="resetIcon" wicket:id="link">&nbsp;</a><span wicket:id="label"></span></wicket:fragment>
+
+
+	<form wicket:id="f2" class="tags" style="width:400px">
+			<ul>
+				<li wicket:id="tags" class="tag"><span wicket:id="tag"></span></li>
+				<li class="input"><input autocomplete="off" wicket:id="field"></input></li> 
+			</ul>
+		<input type="submit" style="display: none;">
+		<a style="display: none;" wicket:id="sb" >hidden button</a>
+	</form>
 </body>
 </html>
