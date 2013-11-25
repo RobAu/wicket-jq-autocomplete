@@ -76,7 +76,8 @@ public class HomePage extends WebPage
 		test.add( "zus" );
 		test.add( "jet" );
 		IModel<List<String>> options = new Model(test);
-		add( new MiniTaggingPanel( "tags", options ));
+		IModel<List<String>> selection = new Model(new ArrayList<String>());
+		add( new MiniTaggingPanel( "tags", selection, options ));
 
 		// TODO Add your page's components here
 
